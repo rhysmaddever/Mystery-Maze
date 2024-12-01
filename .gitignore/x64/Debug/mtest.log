@@ -1,0 +1,3 @@
+﻿  mtest.cpp
+C:\Users\Rhys\coding\Bro Code\C++ Full Course\Struct\passStructAsArgument\mtest\mtest\mtest.cpp(6,11): error C2734: 'ROWS': 'const' object must be initialized if not 'extern'
+C:\Users\Rhys\coding\Bro Code\C++ Full Course\Struct\passStructAsArgument\mtest\mtest\mtest.cpp(6,23): error C2734: 'COLUMN': 'const' object must be initialized if not 'extern'

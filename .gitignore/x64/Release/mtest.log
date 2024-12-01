@@ -1,0 +1,12 @@
+﻿  mtest.cpp
+C:\Users\Rhys\coding\Bro Code\C++ Full Course\Struct\passStructAsArgument\mtest\mtest\mtest.cpp(142,66): warning C4267: 'argument': conversion from 'size_t' to '_Ty', possible loss of data
+          with
+          [
+              _Ty=int
+          ]
+  Generating code
+  0 of 173 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  mtest.vcxproj -> C:\Users\Rhys\coding\Bro Code\C++ Full Course\Struct\passStructAsArgument\mtest\x64\Release\mtest.exe
