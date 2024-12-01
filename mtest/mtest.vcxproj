@@ -24,6 +24,7 @@
     <ProjectGuid>{985fe6b9-c7d1-4303-a861-6d2da7c6da53}</ProjectGuid>
     <RootNamespace>mtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
+    <ProjectName>mystery_maze</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
