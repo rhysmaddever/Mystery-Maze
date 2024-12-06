@@ -1,0 +1,5 @@
+﻿  Mystery Maze.cpp
+C:\Users\Rhys\Documents\maze\Mystery Maze\Mystery Maze\Mystery Maze.cpp(31,9): error C2078: too many initializers
+C:\Users\Rhys\Documents\maze\Mystery Maze\Mystery Maze\Mystery Maze.cpp(41,18): error C2440: 'initializing': cannot convert from 'int *' to 'int'
+C:\Users\Rhys\Documents\maze\Mystery Maze\Mystery Maze\Mystery Maze.cpp(41,18): message : There is no context in which this conversion is possible
+C:\Users\Rhys\Documents\maze\Mystery Maze\Mystery Maze\Mystery Maze.cpp(47,68): error C2296: '/': not valid as left operand has type 'int [2]'

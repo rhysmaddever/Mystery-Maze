@@ -1,8 +1,0 @@
-﻿C:\Program Files\Microsoft Visual Studio\2022\Community\MSBuild\Microsoft\VC\v170\Microsoft.CppBuild.targets(531,5): warning MSB8028: The intermediate directory (x64\Debug\) contains files shared from another project (mtest.vcxproj).  This can lead to incorrect clean and rebuild behavior.
-  mtest.cpp
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\mtest\mtest.cpp(142,66): warning C4267: 'argument': conversion from 'size_t' to '_Ty', possible loss of data
-          with
-          [
-              _Ty=int
-          ]
-  mtest.vcxproj -> C:\Users\Rhys\Documents\GitHub\Mystery-Maze\x64\Debug\mystery_maze.exe
