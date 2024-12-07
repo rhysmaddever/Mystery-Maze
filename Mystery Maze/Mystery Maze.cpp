@@ -6,6 +6,7 @@
 #include <ctime>
 #include <cstdlib>
 #include <cmath>
+#include <string>
 
 // Constants for maze dimensions and tile size
 const int WIDTH = 29;     // Maze width
@@ -27,6 +28,9 @@ char maze[HEIGHT][WIDTH];
 int playerX = 1, playerY = 1;
 int exitX = WIDTH - 2, exitY = HEIGHT - 2;
 
+// Obstacle positions (purple blocks)
+std::vector<std::pair<int, int>> purpleBlocks;
+
 // Enemy class to manage enemy movement and state
 class Enemy {
 public:
@@ -45,13 +49,15 @@ public:
 // Function declarations for various tasks
 void initializeMaze();
 void generateMaze(int startX, int startY);
-void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, Enemy& enemy);
+void placePurpleBlocks();
+void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy);
 void movePlayer(char direction);
 bool isExitReached();
 bool isWalkable(int x, int y);
 void showMenu();
 bool startGame();
 bool isTooCloseToPlayer(int enemyX, int enemyY);
+bool checkPurpleBlockInteraction(int x, int y);
 
 int main() {
     if (!startGame()) {
@@ -61,6 +67,9 @@ int main() {
     srand(static_cast<unsigned int>(time(0))); // Initialize random seed for maze generation
     initializeMaze();
     generateMaze(1, 1); // Start maze generation from position (1, 1)
+
+    // Place the purple blocks in the maze
+    placePurpleBlocks();
 
     // Set initial enemy position
     int enemyStartX = WIDTH - 3;
@@ -78,7 +87,7 @@ int main() {
     // SFML window setup
     sf::RenderWindow window(sf::VideoMode(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE), "Mystery Maze Game");
 
-    // Rectangle shapes for drawing maze tiles, player, enemy, and exit
+    // Rectangle shapes for drawing maze tiles, player, enemy, exit, and purple blocks
     sf::RectangleShape wall(sf::Vector2f(TILE_SIZE, TILE_SIZE));
     wall.setFillColor(sf::Color::Blue);
 
@@ -94,6 +103,9 @@ int main() {
     sf::RectangleShape exitShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
     exitShape.setFillColor(sf::Color::Yellow);
 
+    sf::RectangleShape purpleBlockShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    purpleBlockShape.setFillColor(sf::Color::Magenta);
+
     // Main game loop
     while (window.isOpen()) {
         sf::Event event;
@@ -101,6 +113,12 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             if (event.type == sf::Event::KeyPressed) {
+                // Check if the user wants to exit by pressing '3'
+                if (event.key.code == sf::Keyboard::Num3) {
+                    std::cout << "Exiting game..." << std::endl;
+                    window.close();
+                }
+
                 if (event.key.code == sf::Keyboard::W) {
                     movePlayer('W'); // Move player up
                 }
@@ -134,9 +152,32 @@ int main() {
             enemy.moveClock.restart();  // Reset the clock after each move
         }
 
+        // Check if the player interacts with a purple block
+        if (checkPurpleBlockInteraction(playerX, playerY)) {
+            // Ask the player a math question
+            int answer;
+            std::cout << "Solve the puzzle: 5 + 3 = ";
+            std::cin >> answer;
+
+            if (answer == 8) {
+                std::cout << "Correct! The purple block disappears." << std::endl;
+                // Remove the purple block
+                for (auto it = purpleBlocks.begin(); it != purpleBlocks.end(); ++it) {
+                    if (it->first == playerX && it->second == playerY) {
+                        maze[it->second][it->first] = ' '; // Make the purple block disappear
+                        purpleBlocks.erase(it);
+                        break;
+                    }
+                }
+            }
+            else {
+                std::cout << "Incorrect. Try again next time!" << std::endl;
+            }
+        }
+
         // Clear window and redraw maze
         window.clear(sf::Color::Black);
-        drawMaze(window, wall, emptySpace, playerShape, enemyShape, exitShape, enemy);
+        drawMaze(window, wall, emptySpace, playerShape, enemyShape, exitShape, purpleBlockShape, enemy);
         window.display();
     }
 
@@ -175,52 +216,82 @@ void generateMaze(int startX, int startY) {
             // Check if the next cell is within bounds and unvisited
             if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && maze[ny][nx] == '#') {
                 maze[ny][nx] = ' ';  // Mark new cell as empty
-                maze[y + DIRECTIONS[dir].second][x + DIRECTIONS[dir].first] = ' ';  // Remove wall between cells
-                cellStack.push({ nx, ny });  // Push to stack for further exploration
+                maze[y + DIRECTIONS[dir].second][x + DIRECTIONS[dir].first] = ' '; // Remove wall between cells
+                cellStack.push({ nx, ny });
                 moved = true;
                 break;
             }
         }
 
         if (!moved) {
-            cellStack.pop();  // Backtrack if no valid moves are available
+            cellStack.pop();  // Backtrack if no direction is possible
+        }
+    }
+}
+
+// Function to place purple blocks randomly on the maze
+// Function to place purple blocks randomly on the maze
+void placePurpleBlocks() {
+    for (int i = 0; i < 2; ++i) {  // Change 5 to 2 to place only 2 purple blocks
+        int x, y;
+        do {
+            x = rand() % WIDTH;
+            y = rand() % HEIGHT;
+        } while (maze[y][x] != ' ' || (x == playerX && y == playerY)); // Ensure not on player position
+        maze[y][x] = 'P'; // Mark the purple block location
+        purpleBlocks.push_back({ x, y });
+    }
+}
+
+// Function to draw the maze and all elements
+void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy) {
+    for (int y = 0; y < HEIGHT; ++y) {
+        for (int x = 0; x < WIDTH; ++x) {
+            if (maze[y][x] == '#') {
+                wall.setPosition(x * TILE_SIZE, y * TILE_SIZE);
+                window.draw(wall);  // Draw wall
+            }
+            else if (maze[y][x] == ' ') {
+                emptySpace.setPosition(x * TILE_SIZE, y * TILE_SIZE);
+                window.draw(emptySpace);  // Draw empty space
+            }
+            else if (maze[y][x] == 'P') {
+                purpleBlockShape.setPosition(x * TILE_SIZE, y * TILE_SIZE);
+                window.draw(purpleBlockShape);  // Draw purple block
+            }
+            else if (maze[y][x] == 'E') {
+                exitShape.setPosition(x * TILE_SIZE, y * TILE_SIZE);
+                window.draw(exitShape);  // Draw exit
+            }
         }
     }
 
-    maze[exitY][exitX] = 'E'; // Place the exit at the bottom right
+    playerShape.setPosition(playerX * TILE_SIZE, playerY * TILE_SIZE);
+    window.draw(playerShape);  // Draw player
+
+    enemyShape.setPosition(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE);
+    window.draw(enemyShape);  // Draw enemy
 }
 
-// Move player in the specified direction
+// Function to move the player based on key input
 void movePlayer(char direction) {
-    if (direction == 'W' && isWalkable(playerX, playerY - 1)) playerY--;
-    else if (direction == 'S' && isWalkable(playerX, playerY + 1)) playerY++;
-    else if (direction == 'A' && isWalkable(playerX - 1, playerY)) playerX--;
-    else if (direction == 'D' && isWalkable(playerX + 1, playerY)) playerX++;
+    int newX = playerX;
+    int newY = playerY;
+
+    if (direction == 'W') newY -= 1;  // Move up
+    else if (direction == 'S') newY += 1;  // Move down
+    else if (direction == 'A') newX -= 1;  // Move left
+    else if (direction == 'D') newX += 1;  // Move right
+
+    if (isWalkable(newX, newY)) {
+        playerX = newX;
+        playerY = newY;
+    }
 }
 
-// Draw the maze, player, enemy, and exit on the window
-void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, Enemy& enemy) {
-    for (int i = 0; i < HEIGHT; ++i) {
-        for (int j = 0; j < WIDTH; ++j) {
-            sf::RectangleShape* tile = &emptySpace; // Default to empty space
-
-            if (maze[i][j] == '#') {
-                tile = &wall; // Wall
-            }
-            else if (i == playerY && j == playerX) {
-                tile = &playerShape; // Player
-            }
-            else if (i == enemy.y && j == enemy.x) {
-                tile = &enemyShape; // Enemy
-            }
-            else if (maze[i][j] == 'E') {
-                tile = &exitShape; // Exit
-            }
-
-            tile->setPosition(j * TILE_SIZE, i * TILE_SIZE); // Set tile position
-            window.draw(*tile); // Draw tile
-        }
-    }
+// Check if a cell is walkable (empty or exit)
+bool isWalkable(int x, int y) {
+    return maze[y][x] == ' ' || maze[y][x] == 'E';
 }
 
 // Check if the player has reached the exit
@@ -228,58 +299,55 @@ bool isExitReached() {
     return playerX == exitX && playerY == exitY;
 }
 
-// Check if the position is walkable (either empty space or exit)
-bool isWalkable(int x, int y) {
-    return maze[y][x] == ' ' || maze[y][x] == 'E';
-}
-
-// Show the game menu options
+// Show the game menu
 void showMenu() {
-    std::cout << "1. Start Game\n2. Instructions\n3. Quit\n";
+    std::cout << "Welcome to the Mystery Maze Game!" << std::endl;
+    std::cout << "Press 2 to see the instructions";
+    std::cout << "Press 1 to Start the Game or 3 to Exit." << std::endl;
 }
 
-// Start the game by selecting a menu option
+// Function to start the game or exit based on user input
 bool startGame() {
-    int choice;
+    char choice;
     showMenu();
     std::cin >> choice;
-
-    if (choice == 1) {
+    if (choice == '1') {
         return true;
     }
-    else if (choice == 3) {
-        return false;
+    else if (choice == '2') {
+        std::cout << "There are the instructions: ";
     }
-
-    std::cout << "Invalid choice. Try again.\n";
-    return startGame();
+    if (choice == '3') {
+        return false;  // Exit the game
+    }
 }
 
-// Check if the enemy is too close to the player (less than 5 tiles away)
+// Check if the enemy is too close to the player
 bool isTooCloseToPlayer(int enemyX, int enemyY) {
-    return std::abs(enemyX - playerX) < 5 && std::abs(enemyY - playerY) < 5;
+    return std::abs(enemyX - playerX) < 2 && std::abs(enemyY - playerY) < 2;
 }
 
-// Enemy movement logic, including backtracking
-void Enemy::move() {
-    for (auto dir : DIRECTIONS) {
-        int nx = x + dir.first;
-        int ny = y + dir.second;
-
-        if (isWalkable(nx, ny) && visited.find({ nx, ny }) == visited.end()) {
-            moveHistory.push({ x, y }); // Record current position for backtracking
-            x = nx;
-            y = ny;
-            visited.insert({ x, y });
-            return;
+// Check for interaction with purple blocks
+bool checkPurpleBlockInteraction(int x, int y) {
+    for (const auto& block : purpleBlocks) {
+        if (block.first == x && block.second == y) {
+            return true;  // Player is interacting with a purple block
         }
     }
+    return false;  // No interaction
+}
 
-    // If no unvisited move is available, backtrack
-    if (!moveHistory.empty()) {
-        auto prev = moveHistory.top();
-        moveHistory.pop();
-        x = prev.first;
-        y = prev.second;
+// Enemy movement function to move the enemy randomly
+void Enemy::move() {
+    // Random move logic (for simplicity, this is a random walk)
+    int moveDirection = rand() % 4;
+    int newX = x + DIRECTIONS[moveDirection].first;
+    int newY = y + DIRECTIONS[moveDirection].second;
+
+    if (newX >= 0 && newX < WIDTH && newY >= 0 && newY < HEIGHT && maze[newY][newX] != '#') {
+        x = newX;
+        y = newY;
+        visited.insert({ x, y });
+        moveHistory.push({ x, y });
     }
 }
