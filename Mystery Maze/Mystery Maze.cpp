@@ -178,7 +178,6 @@ void initializeMaze() {
     }
 }
 
-// Recursive backtracking maze generation
 void generateMaze(int startX, int startY) {
     std::stack<std::pair<int, int>> cellStack;  // Stack to track path
     maze[startY][startX] = ' ';  // Mark starting cell as empty space
@@ -212,7 +211,11 @@ void generateMaze(int startX, int startY) {
             cellStack.pop();  // Backtrack if no direction is possible
         }
     }
+
+    // After generating the maze, place the exit
+    maze[exitY][exitX] = 'E';  // Place the exit at the bottom-right corner
 }
+
 
 // Function to place purple blocks randomly on the maze
 // Function to place purple blocks randomly on the maze
