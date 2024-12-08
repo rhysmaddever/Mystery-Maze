@@ -35,15 +35,18 @@ std::vector<std::pair<int, int>> purpleBlocks;
 class Enemy {
 public:
     int x, y;
-    std::stack<std::pair<int, int>> moveHistory; // For backtracking enemy's movement
-    std::set<std::pair<int, int>> visited;      // Tracks cells visited by the enemy
-    sf::Clock moveClock;  // Clock to control the enemy's movement speed
+    sf::Clock moveClock; // Controls movement speed
+    std::set<std::pair<int, int>> visited; // Tracks visited cells
+    std::stack<std::pair<int, int>> backtrackStack; // For DFS backtracking
 
     Enemy(int startX, int startY) : x(startX), y(startY) {
-        visited.insert({ x, y }); // Mark the enemy's start position as visited
+        // Mark the starting position as visited
+        visited.insert({ x, y });
+        backtrackStack.push({ x, y });
+        srand(static_cast<unsigned>(time(0))); // Seed random number generator
     }
 
-    void move(); // Function for enemy movement
+    void move();
 };
 
 // Function declarations for various tasks
@@ -101,7 +104,7 @@ int main() {
     enemyShape.setFillColor(sf::Color::Red);
 
     sf::RectangleShape exitShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
-    exitShape.setFillColor(sf::Color::Yellow);
+    exitShape.setFillColor(sf::Color::Yellow);  // Distinct color for the exit block
 
     sf::RectangleShape purpleBlockShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
     purpleBlockShape.setFillColor(sf::Color::Magenta);
@@ -136,7 +139,7 @@ int main() {
 
         // Check if the player reached the exit
         if (isExitReached()) {
-            std::cout << "Congratulations! You've found the exit!" << std::endl;
+            std::cout << "Congratulations! You've reached the exit!" << std::endl;
             window.close();
         }
 
@@ -154,25 +157,7 @@ int main() {
 
         // Check if the player interacts with a purple block
         if (checkPurpleBlockInteraction(playerX, playerY)) {
-            // Ask the player a math question
-            int answer;
-            std::cout << "Solve the puzzle: 5 + 3 = ";
-            std::cin >> answer;
-
-            if (answer == 8) {
-                std::cout << "Correct! The purple block disappears." << std::endl;
-                // Remove the purple block
-                for (auto it = purpleBlocks.begin(); it != purpleBlocks.end(); ++it) {
-                    if (it->first == playerX && it->second == playerY) {
-                        maze[it->second][it->first] = ' '; // Make the purple block disappear
-                        purpleBlocks.erase(it);
-                        break;
-                    }
-                }
-            }
-            else {
-                std::cout << "Incorrect. Try again next time!" << std::endl;
-            }
+            continue;
         }
 
         // Clear window and redraw maze
@@ -283,11 +268,19 @@ void movePlayer(char direction) {
     else if (direction == 'A') newX -= 1;  // Move left
     else if (direction == 'D') newX += 1;  // Move right
 
+    // Check for purple block interaction before moving
+    if (maze[newY][newX] == 'P') {
+        if (checkPurpleBlockInteraction(newX, newY)) {
+            return; // Stop movement if the block interaction fails
+        }
+    }
+
     if (isWalkable(newX, newY)) {
         playerX = newX;
         playerY = newY;
     }
 }
+
 
 // Check if a cell is walkable (empty or exit)
 bool isWalkable(int x, int y) {
@@ -302,8 +295,9 @@ bool isExitReached() {
 // Show the game menu
 void showMenu() {
     std::cout << "Welcome to the Mystery Maze Game!" << std::endl;
-    std::cout << "Press 2 to see the instructions";
-    std::cout << "Press 1 to Start the Game or 3 to Exit." << std::endl;
+    std::cout << "Press 1 to Start the Game" << '\n';
+    std::cout << "Press 2 to see the instructions" << '\n';
+    std::cout << "Press 3 to Exit." << '\n';
 }
 
 // Function to start the game or exit based on user input
@@ -331,23 +325,58 @@ bool isTooCloseToPlayer(int enemyX, int enemyY) {
 bool checkPurpleBlockInteraction(int x, int y) {
     for (const auto& block : purpleBlocks) {
         if (block.first == x && block.second == y) {
-            return true;  // Player is interacting with a purple block
+            int answer;
+            std::cout << "Solve the puzzle: 5 + 3 = ";
+            std::cin >> answer;
+
+            if (answer == 8) {
+                std::cout << "Correct! The purple block disappears." << std::endl;
+                maze[y][x] = ' '; // Make the purple block disappear
+                purpleBlocks.erase(std::remove(purpleBlocks.begin(), purpleBlocks.end(), block), purpleBlocks.end());
+                return false; // No longer blocking
+            }
+            else {
+                std::cout << "Incorrect. You cannot pass the purple block yet." << std::endl;
+                return true; // Still blocking
+            }
         }
     }
-    return false;  // No interaction
+    return false; // No interaction with a purple block
 }
 
-// Enemy movement function to move the enemy randomly
 void Enemy::move() {
-    // Random move logic (for simplicity, this is a random walk)
-    int moveDirection = rand() % 4;
-    int newX = x + DIRECTIONS[moveDirection].first;
-    int newY = y + DIRECTIONS[moveDirection].second;
+    std::vector<std::pair<int, int>> neighbors;
 
-    if (newX >= 0 && newX < WIDTH && newY >= 0 && newY < HEIGHT && maze[newY][newX] != '#') {
-        x = newX;
-        y = newY;
-        visited.insert({ x, y });
-        moveHistory.push({ x, y });
+    // Check all possible neighbors
+    for (const auto& dir : DIRECTIONS) {
+        int nx = x + dir.first;
+        int ny = y + dir.second;
+
+        // Add valid, unvisited neighbors
+        if (isWalkable(nx, ny) && visited.find({nx, ny}) == visited.end()) {
+            neighbors.push_back({nx, ny});
+        }
+    }
+
+    if (!neighbors.empty()) {
+        // Pick a random unvisited neighbor
+        int randomIndex = rand() % neighbors.size();
+        int nextX = neighbors[randomIndex].first;
+        int nextY = neighbors[randomIndex].second;
+
+        // Move to the chosen neighbor
+        x = nextX;
+        y = nextY;
+
+        // Mark it as visited and push it to the backtrack stack
+        visited.insert({x, y});
+        backtrackStack.push({x, y});
+    } else if (!backtrackStack.empty()) {
+        // Backtrack if no unvisited neighbors are found
+        backtrackStack.pop(); // Remove the current position
+        if (!backtrackStack.empty()) {
+            x = backtrackStack.top().first;
+            y = backtrackStack.top().second;
+        }
     }
 }

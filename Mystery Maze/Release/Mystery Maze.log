@@ -1,19 +1,19 @@
 ﻿  Mystery Maze.cpp
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(251,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(251,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(255,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(255,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(259,63): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(259,48): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(263,56): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(263,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(269,58): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(269,37): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(272,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(272,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(236,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(236,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(240,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(240,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(244,63): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(244,48): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(248,56): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(248,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(254,58): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(254,37): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(257,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(257,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Generating code
-  2 of 370 functions ( 0.5%) were compiled, the rest were copied from previous compilation.
-    0 functions were new in current compilation
-    0 functions had inline decision re-evaluated but remain unchanged
+  163 of 383 functions (42.6%) were compiled, the rest were copied from previous compilation.
+    9 functions were new in current compilation
+    23 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Mystery Maze.vcxproj -> C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Release\Mystery Maze.exe
