@@ -8,6 +8,10 @@
 #include <cmath>
 #include <string>
 
+// Global game timer
+sf::Clock gameTimer;
+const float TIME_LIMIT = 120.0f;  // 2 minutes in seconds
+
 // Constants for maze dimensions and tile size
 const int WIDTH = 29;     // Maze width
 const int HEIGHT = 15;    // Maze height
@@ -40,7 +44,6 @@ public:
     std::stack<std::pair<int, int>> backtrackStack; // For DFS backtracking
 
     Enemy(int startX, int startY) : x(startX), y(startY) {
-        // Mark the starting position as visited
         visited.insert({ x, y });
         backtrackStack.push({ x, y });
         srand(static_cast<unsigned>(time(0))); // Seed random number generator
@@ -49,11 +52,11 @@ public:
     void move();
 };
 
-// Function declarations for various tasks
+// Function declarations
 void initializeMaze();
 void generateMaze(int startX, int startY);
 void placePurpleBlocks();
-void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy);
+void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy, sf::Text& timerText);
 void movePlayer(char direction);
 bool isExitReached();
 bool isWalkable(int x, int y);
@@ -61,6 +64,7 @@ void showMenu();
 bool startGame();
 bool isTooCloseToPlayer(int enemyX, int enemyY);
 bool checkPurpleBlockInteraction(int x, int y);
+void updateTimerText(sf::Text& timerText);
 
 int main() {
     if (!startGame()) {
@@ -71,20 +75,16 @@ int main() {
     initializeMaze();
     generateMaze(1, 1); // Start maze generation from position (1, 1)
 
-    // Place the purple blocks in the maze
+    // Place purple blocks
     placePurpleBlocks();
 
     // Set initial enemy position
     int enemyStartX = WIDTH - 3;
     int enemyStartY = HEIGHT - 3;
-
-    // Ensure the enemy does not spawn too close to the player
     while (maze[enemyStartY][enemyStartX] == '#' || (enemyStartX == playerX && enemyStartY == playerY) || isTooCloseToPlayer(enemyStartX, enemyStartY)) {
         enemyStartX = rand() % WIDTH;
         enemyStartY = rand() % HEIGHT;
     }
-
-    // Create enemy object
     Enemy enemy(enemyStartX, enemyStartY);
 
     // SFML window setup
@@ -104,10 +104,27 @@ int main() {
     enemyShape.setFillColor(sf::Color::Red);
 
     sf::RectangleShape exitShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
-    exitShape.setFillColor(sf::Color::Yellow);  // Distinct color for the exit block
+    exitShape.setFillColor(sf::Color::Yellow);
 
     sf::RectangleShape purpleBlockShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
     purpleBlockShape.setFillColor(sf::Color::Magenta);
+
+    // Load font
+    sf::Font font;
+    if (!font.loadFromFile("C:/Users/Rhys/Documents/GitHub/Mystery-Maze/arial.ttf")) {
+        std::cerr << "Error loading font!" << std::endl;
+        return 1;  // Exit the game if font can't be loaded
+    }
+
+    // Create timer text
+    sf::Text timerText;
+    timerText.setFont(font);
+    timerText.setCharacterSize(24);  // Set an appropriate font size
+    timerText.setFillColor(sf::Color::White);
+
+    // Position the timer text slightly from the top-right corner
+    timerText.setPosition(WIDTH * TILE_SIZE - 150, 10); // Initial placement
+
 
     // Main game loop
     while (window.isOpen()) {
@@ -116,12 +133,10 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close();
             if (event.type == sf::Event::KeyPressed) {
-                // Check if the user wants to exit by pressing '3'
                 if (event.key.code == sf::Keyboard::Num3) {
                     std::cout << "Exiting game..." << std::endl;
                     window.close();
                 }
-
                 if (event.key.code == sf::Keyboard::W) {
                     movePlayer('W'); // Move player up
                 }
@@ -149,20 +164,18 @@ int main() {
             window.close();
         }
 
-        // Slow down enemy by checking elapsed time
-        if (enemy.moveClock.getElapsedTime().asSeconds() > 0.5f) {  // 0.5 seconds delay between moves
-            enemy.move(); // Move enemy
-            enemy.moveClock.restart();  // Reset the clock after each move
+        // Slow down enemy movement
+        if (enemy.moveClock.getElapsedTime().asSeconds() > 0.5f) {
+            enemy.move();
+            enemy.moveClock.restart();
         }
 
-        // Check if the player interacts with a purple block
-        if (checkPurpleBlockInteraction(playerX, playerY)) {
-            continue;
-        }
+        // Update the timer and display it
+        updateTimerText(timerText);
 
         // Clear window and redraw maze
         window.clear(sf::Color::Black);
-        drawMaze(window, wall, emptySpace, playerShape, enemyShape, exitShape, purpleBlockShape, enemy);
+        drawMaze(window, wall, emptySpace, playerShape, enemyShape, exitShape, purpleBlockShape, enemy, timerText);
         window.display();
     }
 
@@ -179,28 +192,24 @@ void initializeMaze() {
 }
 
 void generateMaze(int startX, int startY) {
-    std::stack<std::pair<int, int>> cellStack;  // Stack to track path
-    maze[startY][startX] = ' ';  // Mark starting cell as empty space
+    std::stack<std::pair<int, int>> cellStack;
+    maze[startY][startX] = ' ';
     cellStack.push({ startX, startY });
 
-    // Generate maze by visiting cells randomly
     while (!cellStack.empty()) {
         int x = cellStack.top().first;
         int y = cellStack.top().second;
-
-        // Randomize direction order
         std::vector<int> directions = { 0, 1, 2, 3 };
         std::random_shuffle(directions.begin(), directions.end());
 
         bool moved = false;
         for (int dir : directions) {
-            int nx = x + DIRECTIONS[dir].first * 2;  // Calculate next x
-            int ny = y + DIRECTIONS[dir].second * 2; // Calculate next y
+            int nx = x + DIRECTIONS[dir].first * 2;
+            int ny = y + DIRECTIONS[dir].second * 2;
 
-            // Check if the next cell is within bounds and unvisited
             if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && maze[ny][nx] == '#') {
-                maze[ny][nx] = ' ';  // Mark new cell as empty
-                maze[y + DIRECTIONS[dir].second][x + DIRECTIONS[dir].first] = ' '; // Remove wall between cells
+                maze[ny][nx] = ' ';
+                maze[y + DIRECTIONS[dir].second][x + DIRECTIONS[dir].first] = ' ';
                 cellStack.push({ nx, ny });
                 moved = true;
                 break;
@@ -208,58 +217,89 @@ void generateMaze(int startX, int startY) {
         }
 
         if (!moved) {
-            cellStack.pop();  // Backtrack if no direction is possible
+            cellStack.pop();
         }
     }
 
-    // After generating the maze, place the exit
-    maze[exitY][exitX] = 'E';  // Place the exit at the bottom-right corner
+    maze[exitY][exitX] = 'E';
 }
 
-
-// Function to place purple blocks randomly on the maze
 // Function to place purple blocks randomly on the maze
 void placePurpleBlocks() {
-    for (int i = 0; i < 2; ++i) {  // Change 5 to 2 to place only 2 purple blocks
-        int x, y;
-        do {
-            x = rand() % WIDTH;
-            y = rand() % HEIGHT;
-        } while (maze[y][x] != ' ' || (x == playerX && y == playerY)); // Ensure not on player position
-        maze[y][x] = 'P'; // Mark the purple block location
-        purpleBlocks.push_back({ x, y });
+    for (int i = 0; i <= 3; i++) {
+        int x = rand() % WIDTH;
+        int y = rand() % HEIGHT;
+        if (maze[y][x] == ' ') {
+            purpleBlocks.push_back({ x, y });
+        }
     }
 }
 
-// Function to draw the maze and all elements
-void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy) {
-    for (int y = 0; y < HEIGHT; ++y) {
-        for (int x = 0; x < WIDTH; ++x) {
-            if (maze[y][x] == '#') {
-                wall.setPosition(x * TILE_SIZE, y * TILE_SIZE);
-                window.draw(wall);  // Draw wall
+// Function to draw the maze and game objects on the screen
+void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy, sf::Text& timerText) {
+    for (int i = 0; i < HEIGHT; ++i) {
+        for (int j = 0; j < WIDTH; ++j) {
+            if (maze[i][j] == '#') {
+                wall.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                window.draw(wall);
             }
-            else if (maze[y][x] == ' ') {
-                emptySpace.setPosition(x * TILE_SIZE, y * TILE_SIZE);
-                window.draw(emptySpace);  // Draw empty space
+            else if (maze[i][j] == ' ') {
+                emptySpace.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                window.draw(emptySpace);
             }
-            else if (maze[y][x] == 'P') {
-                purpleBlockShape.setPosition(x * TILE_SIZE, y * TILE_SIZE);
-                window.draw(purpleBlockShape);  // Draw purple block
-            }
-            else if (maze[y][x] == 'E') {
-                exitShape.setPosition(x * TILE_SIZE, y * TILE_SIZE);
-                window.draw(exitShape);  // Draw exit
+            else if (maze[i][j] == 'E') {
+                exitShape.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                window.draw(exitShape);
             }
         }
     }
 
+    // Draw the player and enemy
     playerShape.setPosition(playerX * TILE_SIZE, playerY * TILE_SIZE);
-    window.draw(playerShape);  // Draw player
+    window.draw(playerShape);
 
     enemyShape.setPosition(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE);
-    window.draw(enemyShape);  // Draw enemy
+    window.draw(enemyShape);
+
+    // Draw purple blocks
+    for (const auto& block : purpleBlocks) {
+        purpleBlockShape.setPosition(block.first * TILE_SIZE, block.second * TILE_SIZE);
+        window.draw(purpleBlockShape);
+    }
+
+    // Draw timer text
+    window.draw(timerText);
 }
+
+// Function to update the timer text
+void updateTimerText(sf::Text& timerText) {
+    float elapsedTime = gameTimer.getElapsedTime().asSeconds();
+    float timeRemaining = TIME_LIMIT - elapsedTime;
+    if (timeRemaining < 0) {
+        timeRemaining = 0;
+    }
+    int minutes = static_cast<int>(timeRemaining) / 60;
+    int seconds = static_cast<int>(timeRemaining) % 60;
+
+    // Update the text string and ensure it's readable with padding
+    timerText.setString("Time Remaining: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
+
+    // Optionally adjust the font size if it's too big
+    if (timerText.getCharacterSize() > 24) {
+        timerText.setCharacterSize(24); // Set a reasonable font size
+    }
+
+    // Ensure it fits better on the screen by adjusting the position
+    float textWidth = timerText.getLocalBounds().width;
+    float textHeight = timerText.getLocalBounds().height;
+    float screenWidth = WIDTH * TILE_SIZE;
+
+    // Adjust the X position so the timer doesn't get cut off
+    timerText.setPosition(screenWidth - textWidth - 10, 10); // Move the timer left if it's too close to the edge
+}
+
+
+
 
 // Function to move the player based on key input
 void movePlayer(char direction) {
