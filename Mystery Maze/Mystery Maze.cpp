@@ -407,23 +407,8 @@ bool startGame() {
     if (choice == '1') {
         return true;
     }
-    else if (choice == '2') {
-        // Display the instructions
-        std::cout << "\n===== Instructions =====" << std::endl;
-        std::cout << "1. The aim of the game is to navigate through the maze and reach the exit." << std::endl;
-        std::cout << "2. You can move your character using the WASD keys (W for up, A for left, S for down, D for right)." << std::endl;
-        std::cout << "3. Along the way, you will encounter purple blocks that require you to solve a puzzle (3 tries). If you fail, the game ends." << std::endl;
-        std::cout << "4. There are also power-ups in the maze. When you collect one, it gives you a random advantage." << std::endl;
-        std::cout << "   - Power-up effects can freeze the enemy, add extra time, or teleport you to a random location." << std::endl;
-        std::cout << "5. The timer counts down from 2 minutes (120 seconds). If time runs out, the game ends." << std::endl;
-        std::cout << "6. The enemy is randomly moving in the maze, and if it catches you, the game is over." << std::endl;
-        std::cout << "7. Keep an eye on the purple blocks and power-ups, as they can significantly help or hinder your progress!" << std::endl;
-        std::cout << "8. Press '3' to exit the game at any time." << std::endl;
-        std::cout << "\n===== Good Luck! =====" << std::endl;
-
-        return startGame(); // After showing the instructions, prompt again to either start or exit
-    }
-    if (choice == '3') {
+    
+    else if (choice == '3') {
         return false;  // Exit the game
     }
 }

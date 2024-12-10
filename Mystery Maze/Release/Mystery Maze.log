@@ -14,8 +14,9 @@ C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(311,50
 C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(318,65): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
 C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(318,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Generating code
-  3 of 471 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(414): warning C4715: 'startGame': not all control paths return a value
+  4 of 471 functions ( 0.8%) were compiled, the rest were copied from previous compilation.
     0 functions were new in current compilation
-    3 functions had inline decision re-evaluated but remain unchanged
+    2 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Mystery Maze.vcxproj -> C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Release\Mystery Maze.exe
