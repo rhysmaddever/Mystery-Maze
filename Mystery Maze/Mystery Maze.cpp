@@ -35,11 +35,17 @@ int exitX = WIDTH - 2, exitY = HEIGHT - 2;
 // Obstacle positions (purple blocks)
 std::vector<std::pair<int, int>> purpleBlocks;
 
-// Enemy class to manage enemy movement and state
+// Power-up position
+int powerUpX = -1, powerUpY = -1;
+bool powerUpActive = false;  // Whether the power-up is active
+sf::Clock powerUpClock;      // Timer for power-up effects
+
+
 class Enemy {
 public:
     int x, y;
     sf::Clock moveClock; // Controls movement speed
+    sf::Clock powerUpClock; // Tracks power-up freeze duration
     std::set<std::pair<int, int>> visited; // Tracks visited cells
     std::stack<std::pair<int, int>> backtrackStack; // For DFS backtracking
 
@@ -51,6 +57,7 @@ public:
 
     void move();
 };
+
 
 // Function declarations
 void initializeMaze();
@@ -65,11 +72,14 @@ bool startGame();
 bool isTooCloseToPlayer(int enemyX, int enemyY);
 bool checkPurpleBlockInteraction(int x, int y);
 void updateTimerText(sf::Text& timerText);
+void placePowerUp();
+void collectPowerUp();
 
 int main() {
     if (!startGame()) {
         return 0;
     }
+
 
     srand(static_cast<unsigned int>(time(0))); // Initialize random seed for maze generation
     initializeMaze();
@@ -77,6 +87,9 @@ int main() {
 
     // Place purple blocks
     placePurpleBlocks();
+
+    placePowerUp();
+
 
     // Set initial enemy position
     int enemyStartX = WIDTH - 3;
@@ -86,6 +99,8 @@ int main() {
         enemyStartY = rand() % HEIGHT;
     }
     Enemy enemy(enemyStartX, enemyStartY);
+
+    enemy.moveClock.restart(); // Reset move clock as soon as the enemy is created
 
     // SFML window setup
     sf::RenderWindow window(sf::VideoMode(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE), "Mystery Maze Game");
@@ -170,6 +185,13 @@ int main() {
             enemy.moveClock.restart();
         }
 
+        // Inside the game loop (in main)
+        if (powerUpClock.getElapsedTime().asSeconds() >= 5.0f) {
+            // Reset enemy freeze state after the duration
+            powerUpClock.restart();  // Restart or stop freezing the enemy
+        }
+
+
         // Update the timer and display it
         updateTimerText(timerText);
 
@@ -238,6 +260,26 @@ void placePurpleBlocks() {
     }
 }
 
+// Function to place the power-up in the maze at a random walkable position
+void placePowerUp() {
+    while (true) {
+        int x = rand() % WIDTH;
+        int y = rand() % HEIGHT;
+
+        // Ensure the power-up is on a walkable tile, not overlapping purple blocks, exit, or the player
+        if (maze[y][x] == ' ' && !(x == playerX && y == playerY) &&
+            !(x == exitX && y == exitY) &&
+            std::find(purpleBlocks.begin(), purpleBlocks.end(), std::make_pair(x, y)) == purpleBlocks.end()) {
+            powerUpX = x;
+            powerUpY = y;
+            powerUpActive = true;  // Activate the power-up
+            break;
+        }
+    }
+}
+
+
+
 // Function to draw the maze and game objects on the screen
 void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy, sf::Text& timerText) {
     for (int i = 0; i < HEIGHT; ++i) {
@@ -269,6 +311,14 @@ void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleS
         purpleBlockShape.setPosition(block.first * TILE_SIZE, block.second * TILE_SIZE);
         window.draw(purpleBlockShape);
     }
+
+    if (powerUpActive) {
+        sf::RectangleShape powerUpShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+        powerUpShape.setFillColor(sf::Color::Cyan);  // Cyan for power-up
+        powerUpShape.setPosition(powerUpX * TILE_SIZE, powerUpY * TILE_SIZE);
+        window.draw(powerUpShape);
+    }
+
 
     // Draw timer text
     window.draw(timerText);
@@ -322,6 +372,12 @@ void movePlayer(char direction) {
         playerX = newX;
         playerY = newY;
     }
+
+    // Check if the player collected the power-up
+    if (powerUpActive && newX == powerUpX && newY == powerUpY) {
+        collectPowerUp();
+    }
+
 }
 
 
@@ -352,7 +408,20 @@ bool startGame() {
         return true;
     }
     else if (choice == '2') {
-        std::cout << "There are the instructions: ";
+        // Display the instructions
+        std::cout << "\n===== Instructions =====" << std::endl;
+        std::cout << "1. The aim of the game is to navigate through the maze and reach the exit." << std::endl;
+        std::cout << "2. You can move your character using the WASD keys (W for up, A for left, S for down, D for right)." << std::endl;
+        std::cout << "3. Along the way, you will encounter purple blocks that require you to solve a puzzle (3 tries). If you fail, the game ends." << std::endl;
+        std::cout << "4. There are also power-ups in the maze. When you collect one, it gives you a random advantage." << std::endl;
+        std::cout << "   - Power-up effects can freeze the enemy, add extra time, or teleport you to a random location." << std::endl;
+        std::cout << "5. The timer counts down from 2 minutes (120 seconds). If time runs out, the game ends." << std::endl;
+        std::cout << "6. The enemy is randomly moving in the maze, and if it catches you, the game is over." << std::endl;
+        std::cout << "7. Keep an eye on the purple blocks and power-ups, as they can significantly help or hinder your progress!" << std::endl;
+        std::cout << "8. Press '3' to exit the game at any time." << std::endl;
+        std::cout << "\n===== Good Luck! =====" << std::endl;
+
+        return startGame(); // After showing the instructions, prompt again to either start or exit
     }
     if (choice == '3') {
         return false;  // Exit the game
@@ -401,7 +470,60 @@ bool checkPurpleBlockInteraction(int x, int y) {
     return false; // No interaction with a purple block
 }
 
+// Function to collect the power-up and apply a random effect
+void collectPowerUp() {
+    // Randomize the effect
+    int effect = rand() % 3;  // 0 = freeze enemy, 1 = extra time, 2 = teleport player
+
+    // Declare validTeleport before the switch statement
+    bool validTeleport = false;
+
+    switch (effect) {
+    case 0:  // Freeze enemy for 5 seconds
+        std::cout << "Power-Up: Enemy frozen for 5 seconds!" << std::endl;
+        powerUpClock.restart();  // Restart the power-up timer
+        break;
+    case 1:  // Extra time
+        std::cout << "Power-Up: Time extended by 30 seconds!" << std::endl;
+        gameTimer.restart();  // Restart the game timer for extra time
+        break;
+    case 2:  // Teleport player
+        std::cout << "Power-Up: You are teleported to a random location!" << std::endl;
+
+        // Teleport the player to a random walkable location
+        while (!validTeleport) {
+            int newX = rand() % WIDTH;
+            int newY = rand() % HEIGHT;
+
+            // Ensure the new position is walkable (not a wall, not the exit, not the player, and not purple blocks)
+            if (maze[newY][newX] == ' ' && !(newX == playerX && newY == playerY) &&
+                !(newX == exitX && newY == exitY) &&
+                std::find(purpleBlocks.begin(), purpleBlocks.end(), std::make_pair(newX, newY)) == purpleBlocks.end()) {
+
+                // If the position is valid, update the player position
+                playerX = newX;
+                playerY = newY;
+                validTeleport = true;  // Exit the loop
+            }
+        }
+        break;
+    default:
+        std::cout << "Power-Up: Unknown effect!" << std::endl;
+        break;
+    }
+
+
+    powerUpActive = false;  // Deactivate the power-up after it's collected
+}
+
+
+
 void Enemy::move() {
+    // If the power-up effect is active, freeze the enemy
+    if (powerUpClock.getElapsedTime().asSeconds() < 5.0f) {
+        return; // Skip movement while power-up is active
+    }
+
     std::vector<std::pair<int, int>> neighbors;
 
     // Check all possible neighbors
@@ -410,8 +532,8 @@ void Enemy::move() {
         int ny = y + dir.second;
 
         // Add valid, unvisited neighbors
-        if (isWalkable(nx, ny) && visited.find({nx, ny}) == visited.end()) {
-            neighbors.push_back({nx, ny});
+        if (isWalkable(nx, ny) && visited.find({ nx, ny }) == visited.end()) {
+            neighbors.push_back({ nx, ny });
         }
     }
 
@@ -426,9 +548,10 @@ void Enemy::move() {
         y = nextY;
 
         // Mark it as visited and push it to the backtrack stack
-        visited.insert({x, y});
-        backtrackStack.push({x, y});
-    } else if (!backtrackStack.empty()) {
+        visited.insert({ x, y });
+        backtrackStack.push({ x, y });
+    }
+    else if (!backtrackStack.empty()) {
         // Backtrack if no unvisited neighbors are found
         backtrackStack.pop(); // Remove the current position
         if (!backtrackStack.empty()) {
@@ -437,3 +560,5 @@ void Enemy::move() {
         }
     }
 }
+
+

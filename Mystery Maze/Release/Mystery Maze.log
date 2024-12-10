@@ -1,19 +1,21 @@
 ﻿  Mystery Maze.cpp
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(246,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(246,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(250,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(250,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(254,56): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(254,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(261,58): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(261,37): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(264,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(264,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(269,76): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(269,50): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(288,51): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(288,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(292,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(292,42): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(296,56): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(296,41): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(303,58): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(303,37): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(306,57): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(306,36): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(311,76): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(311,50): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(318,65): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
+C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(318,43): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
   Generating code
-  Previous IPDB and IOBJ mismatch, fall back to full compilation.
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(360): warning C4715: 'startGame': not all control paths return a value
-  All 468 functions were compiled because no usable IPDB/IOBJ from previous compilation was found.
+  3 of 471 functions ( 0.6%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    3 functions had inline decision re-evaluated but remain unchanged
   Finished generating code
   Mystery Maze.vcxproj -> C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Release\Mystery Maze.exe
