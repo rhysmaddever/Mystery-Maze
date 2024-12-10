@@ -224,13 +224,16 @@ void generateMaze(int startX, int startY) {
     maze[exitY][exitX] = 'E';
 }
 
-// Function to place purple blocks randomly on the maze
+// Function to place exactly two purple blocks randomly on the maze
 void placePurpleBlocks() {
-    for (int i = 0; i <= 3; i++) {
+    while (purpleBlocks.size() < 2) { // Limit to 2 blocks
         int x = rand() % WIDTH;
         int y = rand() % HEIGHT;
-        if (maze[y][x] == ' ') {
+
+        // Ensure the block is placed on a walkable cell and not overlapping existing blocks
+        if (maze[y][x] == ' ' && std::find(purpleBlocks.begin(), purpleBlocks.end(), std::make_pair(x, y)) == purpleBlocks.end()) {
             purpleBlocks.push_back({ x, y });
+            maze[y][x] = 'P'; // Mark the block in the maze
         }
     }
 }
@@ -298,9 +301,6 @@ void updateTimerText(sf::Text& timerText) {
     timerText.setPosition(screenWidth - textWidth - 10, 10); // Move the timer left if it's too close to the edge
 }
 
-
-
-
 // Function to move the player based on key input
 void movePlayer(char direction) {
     int newX = playerX;
@@ -364,24 +364,38 @@ bool isTooCloseToPlayer(int enemyX, int enemyY) {
     return std::abs(enemyX - playerX) < 2 && std::abs(enemyY - playerY) < 2;
 }
 
-// Check for interaction with purple blocks
+// Function to check purple block interaction
 bool checkPurpleBlockInteraction(int x, int y) {
     for (const auto& block : purpleBlocks) {
         if (block.first == x && block.second == y) {
+            int attempts = 3; // Player gets three attempts
             int answer;
-            std::cout << "Solve the puzzle: 5 + 3 = ";
-            std::cin >> answer;
+            bool passed = false;
 
-            if (answer == 8) {
-                std::cout << "Correct! The purple block disappears." << std::endl;
-                maze[y][x] = ' '; // Make the purple block disappear
-                purpleBlocks.erase(std::remove(purpleBlocks.begin(), purpleBlocks.end(), block), purpleBlocks.end());
-                return false; // No longer blocking
+            while (attempts > 0) {
+                std::cout << "Solve the puzzle to pass: What is 5 + 3? ";
+                std::cin >> answer;
+
+                if (answer == 8) {
+                    std::cout << "Correct! The purple block disappears." << std::endl;
+                    maze[y][x] = ' '; // Make the purple block disappear
+                    purpleBlocks.erase(std::remove(purpleBlocks.begin(), purpleBlocks.end(), block), purpleBlocks.end());
+                    passed = true;
+                    break;
+                }
+                else {
+                    attempts--;
+                    if (attempts > 0) {
+                        std::cout << "Incorrect! You have " << attempts << " attempt(s) remaining." << std::endl;
+                    }
+                    else {
+                        std::cout << "Incorrect! You have no attempts left. Game Over!" << std::endl;
+                        exit(0); // End the game
+                    }
+                }
             }
-            else {
-                std::cout << "Incorrect. You cannot pass the purple block yet." << std::endl;
-                return true; // Still blocking
-            }
+
+            return !passed; // Return true if the block is still blocking
         }
     }
     return false; // No interaction with a purple block
