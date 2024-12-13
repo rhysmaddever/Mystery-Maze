@@ -10,12 +10,13 @@
 
 // Global game timer
 sf::Clock gameTimer;
-const float TIME_LIMIT = 120.0f;  // 2 minutes in seconds
+float timeLimit = 120.0f;  // 2 minutes in seconds
 
 // Constants for maze dimensions and tile size
-const int WIDTH = 29;     // Maze width
-const int HEIGHT = 15;    // Maze height
+int height = 19;     // Maze width
+int width = 15;    // Maze height, i think the width and height has to be an odd number for it to work
 const int TILE_SIZE = 32; // Tile size in pixels
+int level = 1;
 
 // Directions for maze carving (up, right, down, left)
 const std::vector<std::pair<int, int>> DIRECTIONS = {
@@ -26,11 +27,12 @@ const std::vector<std::pair<int, int>> DIRECTIONS = {
 };
 
 // Maze grid represented as a 2D character array
-char maze[HEIGHT][WIDTH];
+std::vector<std::vector<char>> maze(height, std::vector<char>(width, '#'));
+
 
 // Player and exit positions
 int playerX = 1, playerY = 1;
-int exitX = WIDTH - 2, exitY = HEIGHT - 2;
+int exitX = width - 2, exitY = height - 2;
 
 // Obstacle positions (purple blocks)
 std::vector<std::pair<int, int>> purpleBlocks;
@@ -74,6 +76,11 @@ bool checkPurpleBlockInteraction(int x, int y);
 void updateTimerText(sf::Text& timerText);
 void placePowerUp();
 void collectPowerUp();
+void showPostLevelMenu();
+void prepareNextLevel();
+
+
+bool levelCompleted = false;
 
 int main() {
     if (!startGame()) {
@@ -92,18 +99,18 @@ int main() {
 
 
     // Set initial enemy position
-    int enemyStartX = WIDTH - 3;
-    int enemyStartY = HEIGHT - 3;
+    int enemyStartX = width - 3;
+    int enemyStartY = height - 3;
     while (maze[enemyStartY][enemyStartX] == '#' || (enemyStartX == playerX && enemyStartY == playerY) || isTooCloseToPlayer(enemyStartX, enemyStartY)) {
-        enemyStartX = rand() % WIDTH;
-        enemyStartY = rand() % HEIGHT;
+        enemyStartX = rand() % width;
+        enemyStartY = rand() % height;
     }
     Enemy enemy(enemyStartX, enemyStartY);
 
     enemy.moveClock.restart(); // Reset move clock as soon as the enemy is created
 
     // SFML window setup
-    sf::RenderWindow window(sf::VideoMode(WIDTH * TILE_SIZE, HEIGHT * TILE_SIZE), "Mystery Maze Game");
+    sf::RenderWindow window(sf::VideoMode(width * TILE_SIZE, height * TILE_SIZE), "Mystery Maze Game");
 
     // Rectangle shapes for drawing maze tiles, player, enemy, exit, and purple blocks
     sf::RectangleShape wall(sf::Vector2f(TILE_SIZE, TILE_SIZE));
@@ -138,7 +145,7 @@ int main() {
     timerText.setFillColor(sf::Color::White);
 
     // Position the timer text slightly from the top-right corner
-    timerText.setPosition(WIDTH * TILE_SIZE - 150, 10); // Initial placement
+    timerText.setPosition(width * TILE_SIZE - 150, 10); // Initial placement
 
 
     // Main game loop
@@ -170,7 +177,8 @@ int main() {
         // Check if the player reached the exit
         if (isExitReached()) {
             std::cout << "Congratulations! You've reached the exit!" << std::endl;
-            window.close();
+            showPostLevelMenu();
+            prepareNextLevel();
         }
 
         // Check if the enemy caught the player
@@ -191,6 +199,14 @@ int main() {
             powerUpClock.restart();  // Restart or stop freezing the enemy
         }
 
+        // Inside the main game loop
+        sf::Time elapsedTime = gameTimer.getElapsedTime();
+        float remainingTime = timeLimit - elapsedTime.asSeconds();
+
+        if (remainingTime <= 0.0f) {
+            std::cout << "Time's up! Game Over!" << std::endl;
+            window.close();
+        }
 
         // Update the timer and display it
         updateTimerText(timerText);
@@ -199,6 +215,12 @@ int main() {
         window.clear(sf::Color::Black);
         drawMaze(window, wall, emptySpace, playerShape, enemyShape, exitShape, purpleBlockShape, enemy, timerText);
         window.display();
+
+        if (levelCompleted) {
+            // Handle post-level menu here
+            showPostLevelMenu();
+            levelCompleted = false;
+        }
     }
 
     return 0;
@@ -206,8 +228,8 @@ int main() {
 
 // Initialize the maze with walls ('#')
 void initializeMaze() {
-    for (int i = 0; i < HEIGHT; ++i) {
-        for (int j = 0; j < WIDTH; ++j) {
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
             maze[i][j] = '#'; // Initialize all cells as walls
         }
     }
@@ -229,7 +251,7 @@ void generateMaze(int startX, int startY) {
             int nx = x + DIRECTIONS[dir].first * 2;
             int ny = y + DIRECTIONS[dir].second * 2;
 
-            if (nx >= 0 && nx < WIDTH && ny >= 0 && ny < HEIGHT && maze[ny][nx] == '#') {
+            if (nx >= 0 && nx < width && ny >= 0 && ny < height && maze[ny][nx] == '#') {
                 maze[ny][nx] = ' ';
                 maze[y + DIRECTIONS[dir].second][x + DIRECTIONS[dir].first] = ' ';
                 cellStack.push({ nx, ny });
@@ -249,8 +271,8 @@ void generateMaze(int startX, int startY) {
 // Function to place exactly two purple blocks randomly on the maze
 void placePurpleBlocks() {
     while (purpleBlocks.size() < 2) { // Limit to 2 blocks
-        int x = rand() % WIDTH;
-        int y = rand() % HEIGHT;
+        int x = rand() % width;
+        int y = rand() % height;
 
         // Ensure the block is placed on a walkable cell and not overlapping existing blocks
         if (maze[y][x] == ' ' && std::find(purpleBlocks.begin(), purpleBlocks.end(), std::make_pair(x, y)) == purpleBlocks.end()) {
@@ -263,8 +285,8 @@ void placePurpleBlocks() {
 // Function to place the power-up in the maze at a random walkable position
 void placePowerUp() {
     while (true) {
-        int x = rand() % WIDTH;
-        int y = rand() % HEIGHT;
+        int x = rand() % width;
+        int y = rand() % height;
 
         // Ensure the power-up is on a walkable tile, not overlapping purple blocks, exit, or the player
         if (maze[y][x] == ' ' && !(x == playerX && y == playerY) &&
@@ -282,8 +304,8 @@ void placePowerUp() {
 
 // Function to draw the maze and game objects on the screen
 void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy, sf::Text& timerText) {
-    for (int i = 0; i < HEIGHT; ++i) {
-        for (int j = 0; j < WIDTH; ++j) {
+    for (int i = 0; i < height; ++i) {
+        for (int j = 0; j < width; ++j) {
             if (maze[i][j] == '#') {
                 wall.setPosition(j * TILE_SIZE, i * TILE_SIZE);
                 window.draw(wall);
@@ -327,29 +349,17 @@ void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleS
 // Function to update the timer text
 void updateTimerText(sf::Text& timerText) {
     float elapsedTime = gameTimer.getElapsedTime().asSeconds();
-    float timeRemaining = TIME_LIMIT - elapsedTime;
-    if (timeRemaining < 0) {
-        timeRemaining = 0;
+    float remainingTime = timeLimit - elapsedTime;  // Use variable time limit
+    if (remainingTime < 0) {
+        remainingTime = 0;
     }
-    int minutes = static_cast<int>(timeRemaining) / 60;
-    int seconds = static_cast<int>(timeRemaining) % 60;
+    int minutes = static_cast<int>(remainingTime) / 60;
+    int seconds = static_cast<int>(remainingTime) % 60;
 
-    // Update the text string and ensure it's readable with padding
-    timerText.setString("Time Remaining: " + std::to_string(minutes) + ":" + (seconds < 10 ? "0" : "") + std::to_string(seconds));
-
-    // Optionally adjust the font size if it's too big
-    if (timerText.getCharacterSize() > 24) {
-        timerText.setCharacterSize(24); // Set a reasonable font size
-    }
-
-    // Ensure it fits better on the screen by adjusting the position
-    float textWidth = timerText.getLocalBounds().width;
-    float textHeight = timerText.getLocalBounds().height;
-    float screenWidth = WIDTH * TILE_SIZE;
-
-    // Adjust the X position so the timer doesn't get cut off
-    timerText.setPosition(screenWidth - textWidth - 10, 10); // Move the timer left if it's too close to the edge
+    timerText.setString("Time Remaining: " + std::to_string(minutes) + ":" +
+        (seconds < 10 ? "0" : "") + std::to_string(seconds));
 }
+
 
 // Function to move the player based on key input
 void movePlayer(char direction) {
@@ -402,16 +412,35 @@ void showMenu() {
 // Function to start the game or exit based on user input
 bool startGame() {
     char choice;
-    showMenu();
-    std::cin >> choice;
-    if (choice == '1') {
-        return true;
-    }
-    
-    else if (choice == '3') {
-        return false;  // Exit the game
+    bool validChoice = false;
+
+    // Show the menu until a valid option is entered
+    while (!validChoice) {
+        showMenu();
+        std::cin >> choice;
+
+        // Check if the input is valid (either '1', '2', or '3')
+        if (choice == '1') {
+            validChoice = true;  // Valid choice to start the game
+            return true;
+        }
+        else if (choice == '2') {
+            validChoice = true;  // Option for instructions or other
+            // Optionally, you can display instructions here
+            std::cout << "Instructions:\n";
+            std::cout << "Use WASD to move. Avoid the enemy and solve puzzles!\n";
+            return true;  // Returning true to proceed with game start (or any other function)
+        }
+        else if (choice == '3') {
+            validChoice = true;  // Exit the game
+            return false;  // Exiting the game
+        }
+        else {
+            std::cout << "Invalid choice. Please enter 1, 2, or 3." << std::endl;
+        }
     }
 }
+
 
 // Check if the enemy is too close to the player
 bool isTooCloseToPlayer(int enemyX, int enemyY) {
@@ -456,6 +485,7 @@ bool checkPurpleBlockInteraction(int x, int y) {
 }
 
 // Function to collect the power-up and apply a random effect
+// Function to collect the power-up and apply a random effect
 void collectPowerUp() {
     // Randomize the effect
     int effect = rand() % 3;  // 0 = freeze enemy, 1 = extra time, 2 = teleport player
@@ -468,38 +498,40 @@ void collectPowerUp() {
         std::cout << "Power-Up: Enemy frozen for 5 seconds!" << std::endl;
         powerUpClock.restart();  // Restart the power-up timer
         break;
+
     case 1:  // Extra time
         std::cout << "Power-Up: Time extended by 30 seconds!" << std::endl;
-        gameTimer.restart();  // Restart the game timer for extra time
+        gameTimer.restart();  // Restart the game timer with adjusted remaining time
+        timeLimit += 30;     // Add 30 seconds to the time limit
         break;
+
     case 2:  // Teleport player
-        std::cout << "Power-Up: You are teleported to a random location!" << std::endl;
+        std::cout << "Power-Up: Teleporting to a new position!" << std::endl;
 
-        // Teleport the player to a random walkable location
         while (!validTeleport) {
-            int newX = rand() % WIDTH;
-            int newY = rand() % HEIGHT;
+            int newX = rand() % width;
+            int newY = rand() % height;
 
-            // Ensure the new position is walkable (not a wall, not the exit, not the player, and not purple blocks)
-            if (maze[newY][newX] == ' ' && !(newX == playerX && newY == playerY) &&
-                !(newX == exitX && newY == exitY) &&
-                std::find(purpleBlocks.begin(), purpleBlocks.end(), std::make_pair(newX, newY)) == purpleBlocks.end()) {
-
-                // If the position is valid, update the player position
+            // Ensure the teleport position is walkable and not near the enemy
+            if (isWalkable(newX, newY) && !isTooCloseToPlayer(newX, newY)) {
                 playerX = newX;
                 playerY = newY;
-                validTeleport = true;  // Exit the loop
+                validTeleport = true;
             }
         }
         break;
+
     default:
-        std::cout << "Power-Up: Unknown effect!" << std::endl;
+        std::cerr << "Unknown power-up effect!" << std::endl;
         break;
     }
 
-
-    powerUpActive = false;  // Deactivate the power-up after it's collected
+    // Deactivate the power-up
+    powerUpActive = false;
+    powerUpX = -1;
+    powerUpY = -1;
 }
+
 
 
 
@@ -546,4 +578,64 @@ void Enemy::move() {
     }
 }
 
+void showPostLevelMenu() {
+    std::cout << "Congratulations! You've completed Level 1." << std::endl;
+    std::cout << "Would you like to continue to Level 2?. y for yes, n for no" << std::endl;
+    char choice;
+    while (true) {
+        std::cin >> choice;
+        if (choice == 'Y' || choice == 'y') {
+            std::cout << "Continuing to Level 2..." << std::endl;
+            break;
+        }
+        else if (choice == 'N' || choice == 'n') {
+            std::cout << "Exiting game..." << std::endl;
+            
+            break;
+        }
+        else {
+            std::cout << "Invalid input. Please enter Y for Yes or N for No." << std::endl;
+        }
+    }
+}
 
+void prepareNextLevel() {
+    level++; // Increment level
+
+    // Adjust time limit for harder levels
+    timeLimit = 120.0f - (level * 10);  // For example, 10 seconds less per level
+
+    // Regenerate the maze
+    initializeMaze();
+    generateMaze(1, 1); // Starting point of maze
+
+    // Optionally, add more enemies based on the level number
+    int numberOfEnemies = level; // For example, 1 enemy on level 1, 2 on level 2, etc.
+    for (int i = 0; i < numberOfEnemies; ++i) {
+        int enemyStartX = rand() % width;
+        int enemyStartY = rand() % height;
+        while (maze[enemyStartY][enemyStartX] == '#' || (enemyStartX == playerX && enemyStartY == playerY)) {
+            enemyStartX = rand() % width;
+            enemyStartY = rand() % height;
+        }
+        Enemy enemy(enemyStartX, enemyStartY);
+        // Setup the enemy for the level
+    }
+
+    // Place the exit, purple blocks, and power-ups
+    placePurpleBlocks();
+    placePowerUp();
+
+    // Set the new exit position
+    exitX = width - 2;
+    exitY = height - 2;
+
+    // Optionally, make power-ups more rare or introduce new ones
+}
+
+
+
+
+
+//TODO - Fix user input for menu, make clock add 30 seconds and not reset it, add levels, add scoring system, add save and load game
+//TODO UPDATED - new level works but player doesn't spawn at top left of maze, fix position of timer, 
