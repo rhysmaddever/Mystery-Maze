@@ -13,9 +13,9 @@ sf::Clock gameTimer;
 float timeLimit = 120.0f;  // 2 minutes in seconds
 
 // Constants for maze dimensions and tile size
-int height = 19;     // Maze width
-int width = 15;    // Maze height, i think the width and height has to be an odd number for it to work
-const int TILE_SIZE = 32; // Tile size in pixels
+int height = 21;     // Maze width
+int width = 21;    // Maze height
+int tile_size = 32; // Tile size in pixels
 int level = 1;
 
 // Directions for maze carving (up, right, down, left)
@@ -110,25 +110,25 @@ int main() {
     enemy.moveClock.restart(); // Reset move clock as soon as the enemy is created
 
     // SFML window setup
-    sf::RenderWindow window(sf::VideoMode(width * TILE_SIZE, height * TILE_SIZE), "Mystery Maze Game");
+    sf::RenderWindow window(sf::VideoMode(width * tile_size, height * tile_size), "Mystery Maze Game");
 
     // Rectangle shapes for drawing maze tiles, player, enemy, exit, and purple blocks
-    sf::RectangleShape wall(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape wall(sf::Vector2f(tile_size, tile_size));
     wall.setFillColor(sf::Color::Blue);
 
-    sf::RectangleShape emptySpace(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape emptySpace(sf::Vector2f(tile_size, tile_size));
     emptySpace.setFillColor(sf::Color::Black);
 
-    sf::RectangleShape playerShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape playerShape(sf::Vector2f(tile_size, tile_size));
     playerShape.setFillColor(sf::Color::Green);
 
-    sf::RectangleShape enemyShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape enemyShape(sf::Vector2f(tile_size, tile_size));
     enemyShape.setFillColor(sf::Color::Red);
 
-    sf::RectangleShape exitShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape exitShape(sf::Vector2f(tile_size, tile_size));
     exitShape.setFillColor(sf::Color::Yellow);
 
-    sf::RectangleShape purpleBlockShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+    sf::RectangleShape purpleBlockShape(sf::Vector2f(tile_size, tile_size));
     purpleBlockShape.setFillColor(sf::Color::Magenta);
 
     // Load font
@@ -141,11 +141,21 @@ int main() {
     // Create timer text
     sf::Text timerText;
     timerText.setFont(font);
-    timerText.setCharacterSize(24);  // Set an appropriate font size
+    timerText.setCharacterSize(20);  // Set an appropriate font size
     timerText.setFillColor(sf::Color::White);
 
     // Position the timer text slightly from the top-right corner
-    timerText.setPosition(width * TILE_SIZE - 150, 10); // Initial placement
+    // Get the width of the window and adjust for timer text width
+    // Calculate position for the top-right corner of the window
+    // Calculate text bounds to prevent cutoff
+    // Position the timer text slightly from the top-right corner
+    timerText.setPosition(width * tile_size - 200, 12); // Initial placement
+
+
+
+
+
+
 
 
     // Main game loop
@@ -307,37 +317,37 @@ void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleS
     for (int i = 0; i < height; ++i) {
         for (int j = 0; j < width; ++j) {
             if (maze[i][j] == '#') {
-                wall.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                wall.setPosition(j * tile_size, i * tile_size);
                 window.draw(wall);
             }
             else if (maze[i][j] == ' ') {
-                emptySpace.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                emptySpace.setPosition(j * tile_size, i * tile_size);
                 window.draw(emptySpace);
             }
             else if (maze[i][j] == 'E') {
-                exitShape.setPosition(j * TILE_SIZE, i * TILE_SIZE);
+                exitShape.setPosition(j * tile_size, i * tile_size);
                 window.draw(exitShape);
             }
         }
     }
 
     // Draw the player and enemy
-    playerShape.setPosition(playerX * TILE_SIZE, playerY * TILE_SIZE);
+    playerShape.setPosition(playerX * tile_size, playerY * tile_size);
     window.draw(playerShape);
 
-    enemyShape.setPosition(enemy.x * TILE_SIZE, enemy.y * TILE_SIZE);
+    enemyShape.setPosition(enemy.x * tile_size, enemy.y * tile_size);
     window.draw(enemyShape);
 
     // Draw purple blocks
     for (const auto& block : purpleBlocks) {
-        purpleBlockShape.setPosition(block.first * TILE_SIZE, block.second * TILE_SIZE);
+        purpleBlockShape.setPosition(block.first * tile_size, block.second * tile_size);
         window.draw(purpleBlockShape);
     }
 
     if (powerUpActive) {
-        sf::RectangleShape powerUpShape(sf::Vector2f(TILE_SIZE, TILE_SIZE));
+        sf::RectangleShape powerUpShape(sf::Vector2f(tile_size, tile_size));
         powerUpShape.setFillColor(sf::Color::Cyan);  // Cyan for power-up
-        powerUpShape.setPosition(powerUpX * TILE_SIZE, powerUpY * TILE_SIZE);
+        powerUpShape.setPosition(powerUpX * tile_size, powerUpY * tile_size);
         window.draw(powerUpShape);
     }
 
@@ -579,7 +589,7 @@ void Enemy::move() {
 }
 
 void showPostLevelMenu() {
-    std::cout << "Congratulations! You've completed Level 1." << std::endl;
+    std::cout << "Congratulations! You've completed Level 1.\n \n" << std::endl;
     std::cout << "Would you like to continue to Level 2?. y for yes, n for no" << std::endl;
     char choice;
     while (true) {
@@ -600,42 +610,47 @@ void showPostLevelMenu() {
 }
 
 void prepareNextLevel() {
-    level++; // Increment level
+    // Increment the level
+    level++;
 
-    // Adjust time limit for harder levels
-    timeLimit = 120.0f - (level * 10);  // For example, 10 seconds less per level
+    // Adjust maze dimensions if needed (optional)
+    height += 4; // Increase maze height for a more challenging maze
+    width += 4;  // Increase maze width for a more challenging maze
+    maze = std::vector<std::vector<char>>(height, std::vector<char>(width, '#'));
 
-    // Regenerate the maze
-    initializeMaze();
-    generateMaze(1, 1); // Starting point of maze
+    // Reset player position to top-left corner
+    playerX = 1;
+    playerY = 1;
 
-    // Optionally, add more enemies based on the level number
-    int numberOfEnemies = level; // For example, 1 enemy on level 1, 2 on level 2, etc.
-    for (int i = 0; i < numberOfEnemies; ++i) {
-        int enemyStartX = rand() % width;
-        int enemyStartY = rand() % height;
-        while (maze[enemyStartY][enemyStartX] == '#' || (enemyStartX == playerX && enemyStartY == playerY)) {
-            enemyStartX = rand() % width;
-            enemyStartY = rand() % height;
-        }
-        Enemy enemy(enemyStartX, enemyStartY);
-        // Setup the enemy for the level
-    }
-
-    // Place the exit, purple blocks, and power-ups
-    placePurpleBlocks();
-    placePowerUp();
-
-    // Set the new exit position
+    // Reset exit position to bottom-right corner of the new maze
     exitX = width - 2;
     exitY = height - 2;
 
-    // Optionally, make power-ups more rare or introduce new ones
+    // Reinitialize and regenerate the maze
+    initializeMaze();
+    generateMaze(1, 1);
+
+    // Place purple blocks for the new level
+    purpleBlocks.clear();  // Clear old blocks
+    placePurpleBlocks();
+
+    // Place power-up in a valid location
+    placePowerUp();
+
+    // Reset enemy position
+    int enemyStartX = width - 3;
+    int enemyStartY = height - 3;
+
+    while (maze[enemyStartY][enemyStartX] == '#' || (enemyStartX == playerX && enemyStartY == playerY) || isTooCloseToPlayer(enemyStartX, enemyStartY)) {
+        enemyStartX = rand() % width;
+        enemyStartY = rand() % height;
+    }
+    // Create a new enemy at the new position
+    Enemy enemy(enemyStartX, enemyStartY);
+
+    // Reset the game timer for the new level
+    gameTimer.restart();
+    timeLimit = 120.0f;  // Reset time limit if desired
 }
 
-
-
-
-
-//TODO - Fix user input for menu, make clock add 30 seconds and not reset it, add levels, add scoring system, add save and load game
-//TODO UPDATED - new level works but player doesn't spawn at top left of maze, fix position of timer, 
+//TODO - add scoring system, add save and load game
