@@ -613,9 +613,18 @@ void prepareNextLevel() {
     // Increment the level
     level++;
 
-    // Adjust maze dimensions if needed (optional)
-    height += 4; // Increase maze height for a more challenging maze
-    width += 4;  // Increase maze width for a more challenging maze
+    // Increase maze dimensions proportionally
+    int increaseAmount = 4;
+    height += increaseAmount;
+    width += increaseAmount;
+
+    // Recalculate tile size based on the new dimensions
+    tile_size = std::min(850 / width, 650 / height);  // Adjust these values as needed
+
+    // Resize the window
+    sf::RenderWindow window(sf::VideoMode(width * tile_size, height * tile_size), "Mystery Maze Game");
+
+    // Reset maze
     maze = std::vector<std::vector<char>>(height, std::vector<char>(width, '#'));
 
     // Reset player position to top-left corner
@@ -652,5 +661,6 @@ void prepareNextLevel() {
     gameTimer.restart();
     timeLimit = 120.0f;  // Reset time limit if desired
 }
+
 
 //TODO - add scoring system, add save and load game
