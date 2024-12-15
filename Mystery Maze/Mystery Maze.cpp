@@ -7,8 +7,23 @@
 #include <cstdlib>
 #include <cmath>
 #include <string>
-#pragma once
 #include <algorithm>
+#include <fstream>
+#include <iostream>
+
+//#define DEFINE_FIELD(fieldname, value_t, obis, field_t, field_args) \
+//  struct fieldname : field_t<fieldname, ##field_args> { \
+//    value_t fieldname; \
+//    bool fieldname ## _present = false; \
+//    static constexpr ObisId id = obis; \
+//    static constexpr char name_progmem[] DSMR_PROGMEM = #fieldname; \
+//    static constexpr const __FlashStringHelper *name() { \
+//      return reinterpret_cast<const __FlashStringHelper*>(&name_progmem); \
+//    } \
+//    value_t& val() { return fieldname; } \
+//    bool& present() { return fieldname ## _present; } \
+//  }
+
 
 // Global game timer
 sf::Clock gameTimer;
@@ -19,6 +34,7 @@ int height = 21;     // Maze width
 int width = 21;    // Maze height
 int tile_size = 32; // Tile size in pixels
 int level = 1;
+//GameState loadedState;
 
 // Directions for maze carving (up, right, down, left)
 const std::vector<std::pair<int, int>> DIRECTIONS = {
@@ -70,6 +86,13 @@ struct AdditionQuestion {
         return "What is " + std::to_string(num1) + " + " + std::to_string(num2) + "? ";
     }
 };
+struct GameState {
+    int playerX;
+    int playerY;
+    int level;
+    // Add other relevant game state variables
+};
+
 
 
 
@@ -91,7 +114,8 @@ void collectPowerUp();
 void showPostLevelMenu();
 void prepareNextLevel();
 AdditionQuestion generateRandomAdditionQuestion();
-
+void readLevelAndTimer(std::ifstream& infile);
+void writeLevelAndTimer(std::ofstream& outfile);
 
 bool levelCompleted = false;
 
@@ -164,24 +188,34 @@ int main() {
     // Position the timer text slightly from the top-right corner
     timerText.setPosition(width * tile_size - 200, 12); // Initial placement
 
-
-
-
-
-
-
-
     // Main game loop
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
-            if (event.type == sf::Event::Closed)
+            if (event.type == sf::Event::Closed) {
+                // Calculate and display elapsed time when the user closes the window
+                float elapsedTime = gameTimer.getElapsedTime().asSeconds();
+                int minutes = static_cast<int>(elapsedTime) / 60;
+                int seconds = static_cast<int>(elapsedTime) % 60;
+                std::cout << "Game exited! Elapsed time: " << minutes << " minutes and "
+                    << seconds << " seconds." << std::endl;
+
                 window.close();
+            }
+
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Num3) {
-                    std::cout << "Exiting game..." << std::endl;
+                    // User pressed '3' to exit the game
+                    float elapsedTime = gameTimer.getElapsedTime().asSeconds();
+                    int minutes = static_cast<int>(elapsedTime) / 60;
+                    int seconds = static_cast<int>(elapsedTime) % 60;
+                    std::cout << "Game exited! Elapsed time: " << minutes << " minutes and "
+                        << seconds << " seconds." << std::endl << "You reached level " << level << '\n' << "Your player position is: " << playerX << ' ' << playerY; //player x is across (width)
+                    // player y position is down (rows)
+
                     window.close();
                 }
+
                 if (event.key.code == sf::Keyboard::W) {
                     movePlayer('W'); // Move player up
                 }
@@ -207,6 +241,14 @@ int main() {
         // Check if the enemy caught the player
         if (enemy.x == playerX && enemy.y == playerY) {
             std::cout << "Game Over! The enemy caught you!" << std::endl;
+
+            // Display elapsed time before exiting
+            float elapsedTime = gameTimer.getElapsedTime().asSeconds();
+            int minutes = static_cast<int>(elapsedTime) / 60;
+            int seconds = static_cast<int>(elapsedTime) % 60;
+            std::cout << "Elapsed time: " << minutes << " minutes and "
+                << seconds << " seconds." << std::endl;
+
             window.close();
         }
 
@@ -216,18 +258,19 @@ int main() {
             enemy.moveClock.restart();
         }
 
-        // Inside the game loop (in main)
-        if (powerUpClock.getElapsedTime().asSeconds() >= 5.0f) {
-            // Reset enemy freeze state after the duration
-            powerUpClock.restart();  // Restart or stop freezing the enemy
-        }
-
-        // Inside the main game loop
         sf::Time elapsedTime = gameTimer.getElapsedTime();
         float remainingTime = timeLimit - elapsedTime.asSeconds();
 
         if (remainingTime <= 0.0f) {
             std::cout << "Time's up! Game Over!" << std::endl;
+
+            // Display elapsed time before exiting
+            float elapsedTime = gameTimer.getElapsedTime().asSeconds();
+            int minutes = static_cast<int>(elapsedTime) / 60;
+            int seconds = static_cast<int>(elapsedTime) % 60;
+            std::cout << "Elapsed time: " << minutes << " minutes and "
+                << seconds << " seconds." << std::endl;
+
             window.close();
         }
 
@@ -245,6 +288,30 @@ int main() {
             levelCompleted = false;
         }
     }
+
+    // Reading from file
+    //std::ifstream infile("game_data.txt");
+
+    //if (infile.is_open()) {
+    //    readLevelAndTimer(infile);
+    //    infile.close();
+    //}
+    //else {
+    //    std::cerr << "Unable to open file" << std::endl;
+    //    return 1;
+    //}
+
+    //// Writing to file
+    //std::ofstream outfile("game_data.txt");
+
+    //if (outfile.is_open()) {
+    //    writeLevelAndTimer(outfile);
+    //    outfile.close();
+    //}
+    //else {
+    //    std::cerr << "Unable to open file for writing" << std::endl;
+    //    return 1;
+    //}
 
     return 0;
 }
@@ -323,8 +390,6 @@ void placePowerUp() {
     }
 }
 
-
-
 // Function to draw the maze and game objects on the screen
 void drawMaze(sf::RenderWindow& window, sf::RectangleShape& wall, sf::RectangleShape& emptySpace, sf::RectangleShape& playerShape, sf::RectangleShape& enemyShape, sf::RectangleShape& exitShape, sf::RectangleShape& purpleBlockShape, Enemy& enemy, sf::Text& timerText) {
     for (int i = 0; i < height; ++i) {
@@ -383,7 +448,6 @@ void updateTimerText(sf::Text& timerText) {
         (seconds < 10 ? "0" : "") + std::to_string(seconds));
 }
 
-
 // Function to move the player based on key input
 void movePlayer(char direction) {
     int newX = playerX;
@@ -412,7 +476,6 @@ void movePlayer(char direction) {
     }
 
 }
-
 
 // Check if a cell is walkable (empty or exit)
 bool isWalkable(int x, int y) {
@@ -464,7 +527,6 @@ bool startGame() {
     }
 }
 
-
 // Check if the enemy is too close to the player
 bool isTooCloseToPlayer(int enemyX, int enemyY) {
     return std::abs(enemyX - playerX) < 2 && std::abs(enemyY - playerY) < 2;
@@ -502,14 +564,12 @@ bool checkPurpleBlockInteraction(int x, int y) {
                     }
                 }
             }
-
             return !passed; // Return true if the block is still blocking
         }
     }
     return false; // No interaction with a purple block
 }
 
-// Function to collect the power-up and apply a random effect
 // Function to collect the power-up and apply a random effect
 void collectPowerUp() {
     // Randomize the effect
@@ -557,9 +617,6 @@ void collectPowerUp() {
     powerUpY = -1;
 }
 
-
-
-
 void Enemy::move() {
     // If the power-up effect is active, freeze the enemy
     if (powerUpClock.getElapsedTime().asSeconds() < 5.0f) {
@@ -605,9 +662,10 @@ void Enemy::move() {
 
 void showPostLevelMenu() {
     std::cout << "Congratulations! You've completed Level 1.\n \n" << std::endl;
-    std::cout << "Would you like to continue to Level 2?. y for yes, n for no" << std::endl;
     char choice;
+    bool validTeleport = false;
     while (true) {
+        std::cout << "Do you want to continue to level 2? y for yes, n for no\n \n" << std::endl;
         std::cin >> choice;
         if (choice == 'Y' || choice == 'y') {
             std::cout << "Continuing to Level 2..." << std::endl;
@@ -615,7 +673,6 @@ void showPostLevelMenu() {
         }
         else if (choice == 'N' || choice == 'n') {
             std::cout << "Exiting game..." << std::endl;
-
             break;
         }
         else {
@@ -697,5 +754,22 @@ AdditionQuestion generateRandomAdditionQuestion() {
     return question;
 }
 
+//idk if these do anything bruh
+void readLevelAndTimer(std::ifstream& infile) {
+    int level;
+    float timer;
+
+    infile >> level >> timer;
+
+    // Use the values
+    std::cout << "Level: " << level << std::endl;
+    std::cout << "Time remaining: " << timer << std::endl;
+}
+// Function to write level and timer to file
+void writeLevelAndTimer(std::ofstream& outfile) {
+    int level = 1; // Example value
+
+    outfile << "You are on level" << level << " " << std::endl;
+}
 
 //TODO - add scoring system, add save and load game
