@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <cmath>
 #include <string>
+#pragma once
+#include <algorithm>
 
 // Global game timer
 sf::Clock gameTimer;
@@ -59,6 +61,16 @@ public:
 
     void move();
 };
+struct AdditionQuestion {
+    int num1;
+    int num2;
+    int correctAnswer;
+
+    std::string toString() const {
+        return "What is " + std::to_string(num1) + " + " + std::to_string(num2) + "? ";
+    }
+};
+
 
 
 // Function declarations
@@ -78,6 +90,7 @@ void placePowerUp();
 void collectPowerUp();
 void showPostLevelMenu();
 void prepareNextLevel();
+AdditionQuestion generateRandomAdditionQuestion();
 
 
 bool levelCompleted = false;
@@ -461,17 +474,19 @@ bool isTooCloseToPlayer(int enemyX, int enemyY) {
 bool checkPurpleBlockInteraction(int x, int y) {
     for (const auto& block : purpleBlocks) {
         if (block.first == x && block.second == y) {
+            AdditionQuestion question = generateRandomAdditionQuestion();
+
             int attempts = 3; // Player gets three attempts
-            int answer;
             bool passed = false;
 
             while (attempts > 0) {
-                std::cout << "Solve the puzzle to pass: What is 5 + 3? ";
+                std::cout << "Solve the puzzle to pass: " << question.toString() << std::endl;
+                int answer;
                 std::cin >> answer;
 
-                if (answer == 8) {
+                if (answer == question.correctAnswer) {
                     std::cout << "Correct! The purple block disappears." << std::endl;
-                    maze[y][x] = ' '; // Make the purple block disappear
+                    maze[y][x] = ' ';
                     purpleBlocks.erase(std::remove(purpleBlocks.begin(), purpleBlocks.end(), block), purpleBlocks.end());
                     passed = true;
                     break;
@@ -600,7 +615,7 @@ void showPostLevelMenu() {
         }
         else if (choice == 'N' || choice == 'n') {
             std::cout << "Exiting game..." << std::endl;
-            
+
             break;
         }
         else {
@@ -660,6 +675,26 @@ void prepareNextLevel() {
     // Reset the game timer for the new level
     gameTimer.restart();
     timeLimit = 120.0f;  // Reset time limit if desired
+}
+
+AdditionQuestion generateRandomAdditionQuestion() {
+    static const std::vector<int> numbers = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+    static const std::vector<int> maxSum = { 5, 10, 15, 20 };
+
+    int num1 = numbers[rand() % numbers.size()];
+    int num2 = numbers[rand() % numbers.size()];
+
+    // Ensure the sum doesn't exceed the maximum possible value (e.g., 100)
+    if (num1 + num2 > 100) {
+        return generateRandomAdditionQuestion();
+    }
+
+    AdditionQuestion question;
+    question.num1 = num1;
+    question.num2 = num2;
+    question.correctAnswer = num1 + num2;
+
+    return question;
 }
 
 
