@@ -116,7 +116,10 @@ void prepareNextLevel();
 AdditionQuestion generateRandomAdditionQuestion();
 void readLevelAndTimer(std::ifstream& infile);
 void writeLevelAndTimer(std::ofstream& outfile);
-
+void saveGame(const GameState& gameState, const std::string& filename);
+bool loadGame(GameState& gameState, const std::string& filename);
+void saveGame();
+void loadGame();
 bool levelCompleted = false;
 
 int main() {
@@ -192,6 +195,16 @@ int main() {
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
+            if (event.type == sf::Event::KeyPressed) {
+                if (event.key.code == sf::Keyboard::J) {
+                    saveGame();
+                    std::cout << "Game saved!" << std::endl;
+                }
+                else if (event.key.code == sf::Keyboard::L) {
+                    loadGame();
+                    std::cout << "Game loaded." << std::endl;
+                }
+            }
             if (event.type == sf::Event::Closed) {
                 // Calculate and display elapsed time when the user closes the window
                 float elapsedTime = gameTimer.getElapsedTime().asSeconds();
@@ -202,7 +215,7 @@ int main() {
 
                 window.close();
             }
-
+            
             if (event.type == sf::Event::KeyPressed) {
                 if (event.key.code == sf::Keyboard::Num3) {
                     // User pressed '3' to exit the game
@@ -771,5 +784,58 @@ void writeLevelAndTimer(std::ofstream& outfile) {
 
     outfile << "You are on level" << level << " " << std::endl;
 }
+
+void saveGame(const GameState& gameState, const std::string& filename) {
+    std::ofstream outfile(filename);
+    if (outfile.is_open()) {
+        outfile << gameState.playerX << " ";
+        outfile << gameState.playerY << " ";
+        outfile << gameState.level << " ";
+        // Save other relevant data here
+        outfile.close();
+    }
+    else {
+        std::cerr << "Unable to open file for writing" << std::endl;
+    }
+}
+void saveGame() {
+    GameState gameState;
+    gameState.playerX = playerX;
+    gameState.playerY = playerY;
+    gameState.level = level;
+
+    // Save other relevant game state variables
+
+    saveGame(gameState, "game_state.dat");
+}
+
+
+bool loadGame(GameState& gameState, const std::string& filename) {
+    std::ifstream infile(filename);
+    if (!infile) {
+        return false; // Unable to open file
+    }
+
+    infile >> gameState.playerX >> gameState.playerY >> gameState.level;
+    // Load other relevant data here
+    infile.close();
+    return true;
+}
+
+void loadGame() {
+    GameState gameState;
+    if (loadGame(gameState, "game_state.dat")) {
+        playerX = gameState.playerX;
+        playerY = gameState.playerY;
+        level = gameState.level;
+
+        // Load other relevant game state variables
+    }
+    else {
+        std::cout << "Failed to load game state" << std::endl;
+    }
+}
+
+
 
 //TODO - add scoring system, add save and load game
