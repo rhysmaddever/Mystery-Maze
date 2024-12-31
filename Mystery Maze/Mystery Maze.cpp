@@ -525,9 +525,28 @@ bool startGame() {
         }
         else if (choice == '2') {
             validChoice = true;  // Option for instructions or other
-            // Optionally, you can display instructions here
+            // Display instructions
             std::cout << "Instructions:\n";
-            std::cout << "Use WASD to move. Avoid the enemy and solve puzzles!\n";
+            std::cout << "Welcome to the maze game! Here are the controls and objectives:\n\n";
+
+            std::cout << "Controls:\n";
+            std::cout << "  Use the 'W', 'A', 'S', 'D' keys to move your character:\n";
+            std::cout << "    - 'W' to move up\n";
+            std::cout << "    - 'A' to move left\n";
+            std::cout << "    - 'S' to move down\n";
+            std::cout << "    - 'D' to move right\n";
+
+            std::cout << "\nObjective:\n";
+            std::cout << "  - You need to reach the yellow block at the bottom-right corner of the maze to exit.\n";
+            std::cout << "  - Avoid the red enemy blocks as they will cause you to lose.\n";
+            std::cout << "  - Collect the blue (cyan) power-up blocks for extra abilities.\n";
+            std::cout << "  - The purple blocks are obstacles that will block your path.\n";
+
+            std::cout << "\nTime Limit:\n";
+            std::cout << "  - You have 2 minutes to complete each level!\n";
+
+            std::cout << "\nGood luck! Stay sharp, and remember to avoid the enemy and reach the exit!\n";
+
             return true;  // Returning true to proceed with game start (or any other function)
         }
         else if (choice == '3') {
