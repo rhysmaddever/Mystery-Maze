@@ -173,7 +173,7 @@ int main() {
 
     // Load font
     sf::Font font;
-    if (!font.loadFromFile("C:/Users/Rhys/Documents/GitHub/Mystery-Maze/arial.ttf")) {
+    if (!font.loadFromFile("C:\Users\Rhys\Documents\MysteryMaze\MysteryMaze\Release")) {
         std::cerr << "Error loading font!" << std::endl;
         return 1;  // Exit the game if font can't be loaded
     }
