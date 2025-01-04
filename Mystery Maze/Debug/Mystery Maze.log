@@ -1,4 +1,0 @@
-﻿  Mystery Maze.cpp
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(205,48): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Mystery Maze\Mystery Maze.cpp(205,33): warning C4244: 'argument': conversion from 'int' to 'float', possible loss of data
-  Mystery Maze.vcxproj -> C:\Users\Rhys\Documents\GitHub\Mystery-Maze\Debug\Mystery Maze.exe
