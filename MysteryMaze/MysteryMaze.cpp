@@ -173,9 +173,19 @@ int main() {
 
     // Load font
     sf::Font font;
-    if (!font.loadFromFile("C:/Users/Rhys/Documents/MysteryMaze/Release/assets/arial.ttf")) {
-        std::cerr << "Error loading font!" << std::endl;
-        return 1;  // Exit the game if font can't be loaded
+
+    // First attempt: Absolute path
+    if (font.loadFromFile("C:/Users/Rhys/Documents/GitHub/Mystery-Maze/Release/assets/arial.ttf")) {
+        std::cout << "Font loaded from absolute path!" << std::endl;
+    }
+    // Second attempt: Relative path
+    else if (font.loadFromFile("MysteryMaze_redistribute/assets/arial.ttf")) {
+        std::cout << "Font loaded from relative path!" << std::endl;
+    }
+    // If both fail, log an error and exit
+    else {
+        std::cerr << "Error: Failed to load font" << std::endl;
+        return 1;  // Exit the game
     }
 
     // Create timer text
@@ -852,3 +862,4 @@ void loadGame() {
 
 
 //TODO - add scoring system, add save and load game
+//Fix bug of when saving game state and then re-playing the game, if the saved game position of the player is not in the new maze's path, the player will be spawed outside of the maze path
