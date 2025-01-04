@@ -9,6 +9,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <filesystem>
 #include <iostream>
 
 //#define DEFINE_FIELD(fieldname, value_t, obis, field_t, field_args) \
@@ -174,19 +175,19 @@ int main() {
     // Load font
     sf::Font font;
 
-    // First attempt: Absolute path
-    if (font.loadFromFile("C:/Users/Rhys/Documents/GitHub/Mystery-Maze/Release/assets/arial.ttf")) {
-        std::cout << "Font loaded from absolute path!" << std::endl;
+    // Define the relative path to the new font
+    std::string fontPath = "assets/Roboto-Regular.ttf";
+
+    // Debugging: Print resolved path
+    std::cout << "Resolved font path: " << fontPath << std::endl;
+
+    // Try loading the font
+    if (!font.loadFromFile(fontPath)) {
+        std::cerr << "Error: Failed to load font from " << fontPath << std::endl;
+        return 1;  // Exit the game if font can't be loaded
     }
-    // Second attempt: Relative path
-    else if (font.loadFromFile("MysteryMaze_redistribute/assets/arial.ttf")) {
-        std::cout << "Font loaded from relative path!" << std::endl;
-    }
-    // If both fail, log an error and exit
-    else {
-        std::cerr << "Error: Failed to load font" << std::endl;
-        return 1;  // Exit the game
-    }
+
+    std::cout << "Font loaded successfully!" << std::endl;
 
     // Create timer text
     sf::Text timerText;
